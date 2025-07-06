@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ef4444;
+            --primary-hover: #dc2626;
+            --secondary: #f97316;
+            --accent: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background-color: #fef2f2;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 2rem 1rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '🍳';
+            position: absolute;
+            font-size: 8rem;
+            opacity: 0.1;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%) rotate(15deg);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+        }
+        
+        .btn-secondary:hover {
+            background: #ea580c;
+        }
+        
+        .result-container {
+            padding: 0 2rem 2rem;
+            min-height: 200px;
+        }
+        
+        .recipe-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .recipe-title {
+            font-size: 1.75rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .recipe-title::before {
+            content: '🍽️';
+            font-size: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin: 1.5rem 0 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .ingredients-list, .instructions-list {
+            padding-left: 1.5rem;
+            color: var(--gray-600);
+            line-height: 1.8;
+        }
+        
+        .ingredients-list li, .instructions-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .ingredients-list li::marker {
+            color: var(--primary);
+        }
+        
+        .instructions-list li::marker {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .ingredient-card {
+            background: var(--gray-100);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .ingredient-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--primary);
+        }
+        
+        .ingredient-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--gray-600);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(239, 68, 68, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .ingredients-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Recipe Generator</h1>
+            <p class="subtitle">Discover delicious recipes or get inspired with random ingredients</p>
+        </header>
+        
+        <div class="controls">
+            <button id="generateRecipe" class="btn btn-primary">Generate Random Recipe</button>
+            <button id="generateIngredients" class="btn btn-secondary">Random Ingredients</button>
+        </div>
+        
+        <div class="result-container" id="result">
+            <div class="loading" style="display: none;" id="loading">
+                <div class="spinner"></div>
+                <p>Finding something delicious...</p>
+            </div>
+            <div id="content">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Recipe data
+        const recipes = [
+            {
+                name: 'Spicy Garlic Shrimp Pasta',
+                ingredients: [
+                    { name: 'Shrimp', emoji: '🍤', amount: '1 lb' },
+                    { name: 'Spaghetti', emoji: '🍝', amount: '8 oz' },
+                    { name: 'Garlic', emoji: '🧄', amount: '4 cloves' },
+                    { name: 'Red Pepper Flakes', emoji: '🌶️', amount: '1/2 tsp' },
+                    { name: 'Lemon', emoji: '🍋', amount: '1' },
+                    { name: 'Parmesan', emoji: '🧀', amount: '1/2 cup' },
+                    { name: 'Parsley', emoji: '🌿', amount: '1/4 cup' },
+                    { name: 'Olive Oil', emoji: '🫒', amount: '2 tbsp' },
+                    { name: 'Salt', emoji: '🧂', amount: 'to taste' },
+                    { name: 'Black Pepper', emoji: '⚫', amount: 'to taste' }
+                ],
+                instructions: [
+                    'Cook pasta according to package instructions.',
+                    'Heat olive oil in a large pan over medium heat.',
+                    'Add minced garlic and red pepper flakes, cook until fragrant (30 seconds).',
+                    'Add shrimp and cook until pink (2-3 minutes per side).',
+                    'Add cooked pasta to the pan with some pasta water.',
+                    'Toss with lemon zest, juice, and half the parsley.',
+                    'Season with salt and pepper to taste.',
+                    'Serve with grated parmesan and remaining parsley.'
+                ]
+            },
+            {
+                name: 'Vegetable Stir Fry',
+                ingredients: [
+                    { name: 'Broccoli', emoji: '🥦', amount: '2 cups' },
+                    { name: 'Bell Peppers', emoji: '🫑', amount: '2' },
+                    { name: 'Carrots', emoji: '🥕', amount: '2' },
+                    { name: 'Snow Peas', emoji: '🥬', amount: '1 cup' },
+                    { name: 'Ginger', emoji: '🧅', amount: '1 tbsp' },
+                    { name: 'Soy Sauce', emoji: '🧂', amount: '3 tbsp' },
+                    { name: 'Sesame Oil', emoji: '🛢️', amount: '1 tbsp' },
+                    { name: 'Rice', emoji: '🍚', amount: '2 cups cooked' },
+                    { name: 'Green Onions', emoji: '🧅', amount: '2' }
+                ],
+                instructions: [
+                    'Chop all vegetables into bite-sized pieces.',
+                    'Heat sesame oil in a wok or large pan over high heat.',
+                    'Add minced ginger and stir for 30 seconds.',
+                    'Add vegetables, starting with the ones that take longer to cook (carrots, broccoli).',
+                    'Stir-fry for 5-7 minutes until vegetables are crisp-tender.',
+                    'Add soy sauce and toss to coat.',
+                    'Serve over rice and garnish with sliced green onions.'
+                ]
+            },
+            {
+                name: 'Avocado Toast with Egg',
+                ingredients: [
+                    { name: 'Bread', emoji: '🍞', amount: '2 slices' },
+                    { name: 'Avocado', emoji: '🥑', amount: '1' },
+                    { name: 'Eggs', emoji: '🥚', amount: '2' },
+                    { name: 'Red Pepper Flakes', emoji: '🌶️', amount: 'pinch' },
+                    { name: 'Lemon Juice', emoji: '🍋', amount: '1 tsp' },
+                    { name: 'Salt', emoji: '🧂', amount: 'to taste' },
+                    { name: 'Pepper', emoji: '⚫', amount: 'to taste' },
+                    { name: 'Olive Oil', emoji: '🫒', amount: '1 tbsp' }
+                ],
+                instructions: [
+                    'Toast the bread until golden and crisp.',
+                    'Mash the avocado with lemon juice, salt, and pepper.',
+                    'Heat olive oil in a non-stick pan over medium heat.',
+                    'Fry eggs to your liking (sunny side up is recommended).',
+                    'Spread the mashed avocado on the toast.',
+                    'Top with fried eggs and a pinch of red pepper flakes.',
+                    'Season with additional salt and pepper if needed.'
+                ]
+            },
+            {
+                name: 'Chicken Fajita Bowl',
+                ingredients: [
+                    { name: 'Chicken Breast', emoji: '🍗', amount: '1 lb' },
+                    { name: 'Bell Peppers', emoji: '🫑', amount: '3' },
+                    { name: 'Onion', emoji: '🧅', amount: '1 large' },
+                    { name: 'Rice', emoji: '🍚', amount: '2 cups cooked' },
+                    { name: 'Black Beans', emoji: '🫘', amount: '1 can' },
+                    { name: 'Cumin', emoji: '🌿', amount: '1 tsp' },
+                    { name: 'Paprika', emoji: '🌶️', amount: '1 tsp' },
+                    { name: 'Lime', emoji: '🍋', amount: '1' },
+                    { name: 'Cilantro', emoji: '🌿', amount: '1/4 cup' },
+                    { name: 'Sour Cream', emoji: '🥛', amount: '1/4 cup' },
+                    { name: 'Cheese', emoji: '🧀', amount: '1/2 cup' }
+                ],
+                instructions: [
+                    'Slice chicken into strips and season with cumin, paprika, salt, and pepper.',
+                    'Slice bell peppers and onion into thin strips.',
+                    'Heat oil in a pan over medium-high heat and cook chicken until done (5-6 minutes). Remove and set aside.',
+                    'In the same pan, cook bell peppers and onions until tender (5 minutes).',
+                    'Warm the black beans in a small pot.',
+                    'Assemble bowls with rice, black beans, chicken, and vegetables.',
+                    'Top with cheese, sour cream, and fresh cilantro.',
+                    'Squeeze lime juice over the top before serving.'
+                ]
+            },
+            {
+                name: 'Berry Smoothie Bowl',
+                ingredients: [
+                    { name: 'Frozen Mixed Berries', emoji: '🫐', amount: '2 cups' },
+                    { name: 'Banana', emoji: '🍌', amount: '1' },
+                    { name: 'Greek Yogurt', emoji: '🥛', amount: '1/2 cup' },
+                    { name: 'Almond Milk', emoji: '🥛', amount: '1/4 cup' },
+                    { name: 'Honey', emoji: '🍯', amount: '1 tbsp' },
+                    { name: 'Granola', emoji: '🌾', amount: '1/4 cup' },
+                    { name: 'Chia Seeds', emoji: '🌱', amount: '1 tsp' },
+                    { name: 'Fresh Berries', emoji: '🍓', amount: 'for topping' }
+                ],
+                instructions: [
+                    'In a blender, combine frozen berries, banana, Greek yogurt, almond milk, and honey.',
+                    'Blend until smooth and creamy, adding more almond milk if needed.',
+                    'Pour the smoothie into a bowl.',
+                    'Top with granola, fresh berries, and a sprinkle of chia seeds.',
+                    'Drizzle with additional honey if desired.',
+                    'Serve immediately with a spoon.'
+                ]
+            }
+        ];
+        
+        // Additional ingredients for random generation
+        const extraIngredients = [
+            { name: 'Quinoa', emoji: '🌾', type: 'grain' },
+            { name: 'Chickpeas', emoji: '🧆', type: 'protein' },
+            { name: 'Sweet Potato', emoji: '🍠', type: 'vegetable' },
+            { name: 'Kale', emoji: '🥬', type: 'vegetable' },
+            { name: 'Salmon', emoji: '🐟', type: 'protein' },
+            { name: 'Mushrooms', emoji: '🍄', type: 'vegetable' },
+            { name: 'Tofu', emoji: '🧈', type: 'protein' },
+            { name: 'Zucchini', emoji: '🥒', type: 'vegetable' },
+            { name: 'Brown Rice', emoji: '🍚', type: 'grain' },
+            { name: 'Spinach', emoji: '🥬', type: 'vegetable' },
+            { name: 'Chicken Thighs', emoji: '🍗', type: 'protein' },
+            { name: 'Eggplant', emoji: '🍆', type: 'vegetable' },
+            { name: 'Lentils', emoji: '🥣', type: 'protein' },
+            { name: 'Tomatoes', emoji: '🍅', type: 'vegetable' },
+            { name: 'Ground Turkey', emoji: '🦃', type: 'protein' },
+            { name: 'Asparagus', emoji: '🌱', type: 'vegetable' },
+            { name: 'Chickpea Pasta', emoji: '🍝', type: 'grain' },
+            { name: 'Brussels Sprouts', emoji: '🥬', type: 'vegetable' },
+            { name: 'Shrimp', emoji: '🍤', type: 'protein' },
+            { name: 'Butternut Squash', emoji: '🎃', type: 'vegetable' }
+        ];
+        
+        // DOM elements
+        const generateRecipeBtn = document.getElementById('generateRecipe');
+        const generateIngredientsBtn = document.getElementById('generateIngredients');
+        const resultDiv = document.getElementById('content');
+        const loadingDiv = document.getElementById('loading');
+        
+        // Event listeners
+        generateRecipeBtn.addEventListener('click', generateRandomRecipe);
+        generateIngredientsBtn.addEventListener('click', generateRandomIngredients);
+        
+        // Generate a random recipe
+        function generateRandomRecipe() {
+            showLoading();
+            
+            // Simulate loading
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * recipes.length);
+                const recipe = recipes[randomIndex];
+                displayRecipe(recipe);
+                hideLoading();
+            }, 800);
+        }
+        
+        // Generate random ingredients
+        function generateRandomIngredients() {
+            showLoading();
+            
+            // Simulate loading
+            setTimeout(() => {
+                const numIngredients = 5 + Math.floor(Math.random() * 6); // 5-10 ingredients
+                const selectedIngredients = [];
+                
+                // Make sure we get a balanced selection
+                const types = ['protein', 'vegetable', 'grain'];
+                const selectedTypes = {};
+                
+                // Shuffle array function
+                const shuffleArray = (array) => {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                    return array;
+                };
+                
+                // Shuffle the ingredients
+                const shuffledIngredients = shuffleArray([...extraIngredients]);
+                
+                // Select ingredients ensuring variety
+                for (const ingredient of shuffledIngredients) {
+                    if (selectedIngredients.length >= numIngredients) break;
+                    
+                    if (!selectedTypes[ingredient.type] || Math.random() > 0.5) {
+                        selectedIngredients.push(ingredient);
+                        selectedTypes[ingredient.type] = true;
+                    }
+                }
+                
+                displayIngredients(selectedIngredients);
+                hideLoading();
+            }, 800);
+        }
+        
+        // Display a recipe
+        function displayRecipe(recipe) {
+            let html = `
+                <div class="recipe-card">
+                    <h2 class="recipe-title">${recipe.name}</h2>
+                    
+                    <h3 class="section-title">
+                        <span>Ingredients</span>
+                    </h3>
+                    <ul class="ingredients-list">
+                        ${recipe.ingredients.map(ing => 
+                            `<li>${ing.emoji} ${ing.amount} ${ing.name}</li>`
+                        ).join('')}
+                    </ul>
+                    
+                    <h3 class="section-title">
+                        <span>Instructions</span>
+                    </h3>
+                    <ol class="instructions-list">
+                        ${recipe.instructions.map(step => 
+                            `<li>${step}</li>`
+                        ).join('')}
+                    </ol>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+        }
+        
+        // Display random ingredients
+        function displayIngredients(ingredients) {
+            let html = `
+                <div class="recipe-card">
+                    <h2 class="recipe-title">Your Random Ingredients</h2>
+                    <p>Here are some ingredients to inspire your next meal:</p>
+                    
+                    <div class="ingredients-grid">
+                        ${ingredients.map(ing => `
+                            <div class="ingredient-card">
+                                <span class="ingredient-emoji">${ing.emoji}</span>
+                                <div>${ing.name}</div>
+                                <small>${ing.type}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <p>Try combining these ingredients to create a delicious meal!</p>
+                        <button id="getRecipe" class="btn btn-primary" style="margin-top: 1rem;">Get a Recipe Instead</button>
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+            
+            // Add event listener to the new button
+            document.getElementById('getRecipe')?.addEventListener('click', generateRandomRecipe);
+        }
+        
+        // Show loading state
+        function showLoading() {
+            loadingDiv.style.display = 'flex';
+            resultDiv.innerHTML = '';
+        }
+        
+        // Hide loading state
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+        }
+        
+        // Generate a random recipe on page load
+        window.addEventListener('load', generateRandomRecipe);
+    </script>
+</body>
+</html>
